@@ -10,10 +10,11 @@ contract Token is ERC20 {
 }
 
 
-contract SampleTokenSale {
+contract Marketplace {
     Token tokenContract;
     address owner;
     uint8 prodID;
+    
     
     struct Manager {
         string name;
@@ -40,30 +41,21 @@ contract SampleTokenSale {
         string description;
         uint developingCost;
         uint evaluatorCompensation;
+        uint balance;
         uint totalSum;
         string expertiseDomain;
         address associatedManager;
-        
-        uint financerNumber;
-        mapping(uint => ProdFinancing) financing;
+        mapping(address => uint) finantare;
     }
-    
-
-
-    struct ProdFinancing {
-        address Financer;
-        uint amountFinanced;
-    }
-
 
     mapping(address => Manager) public managerList;
     mapping(address => Freelancer) public freelencerList;
     mapping(address => Evaluator) public evaluatorList;
     mapping(address => Financier) public financierList;
+    mapping(uint => Product) public productList;
+    
     mapping(address => Product[]) public managerToProduct;
-    // mapping(address => )
 
-// addProiect -> (addfinanatator, suma)
     modifier onlyManager(){
         require(bytes(managerList[msg.sender].name).length != 0, "mesaj");
         _;
@@ -84,14 +76,22 @@ contract SampleTokenSale {
     event productGoalReached();
     
 
-    //function for init manager, freelancer, evaluator, sponsor
+    //functions for init manager, freelancer, evaluator, sponsor
     function initManager(string memory _name) public returns (bool success){
         managerList[msg.sender] = Manager(_name, 5);
         return true;
     }
     
-    function addProduct(string calldata prodDescription, uint developCost, uint evalCompensation, uint8 totalSumProd, string calldata domainProd) external onlyManager() {
-        managerToProduct[msg.sender].push(Product(prodDescription, developCost, evalCompensation, totalSumProd, domainProd, msg.sender, 0));
+    function addProduct(string calldata prodDescription, uint developCost, uint evalCompensation, string calldata domainProd) external onlyManager() {
+        uint totalSumProd = developCost + evalCompensation;
+        // managerToProduct[msg.sender].finantare.financierAdd = "";
+        // managerToProduct[msg.sender].finantare.amountFinanced = 0;
+        
+        managerToProduct[msg.sender].push(Product(prodDescription, developCost, evalCompensation, 0, totalSumProd, domainProd, msg.sender));
+    }
+    
+        // only to be called by managers
+    function removeProduct(string calldata id) public {
     }
     
     function initFreelancer(string memory _name, string memory _expertiseDomain) public returns (bool success){
@@ -110,16 +110,35 @@ contract SampleTokenSale {
         return true;
     }
 
-    // only to be called by managers
-    function removeProduct(string calldata id) public {
+    // function contributeToProduct(uint selectProd) external payable {
+    //     require(msg.value != 0, "Please add an amount!");
+        
+    //     require();
+    //     //product.totalSum
+    // }
+    
+    //functie show produse
+    function showProducts() public {
+        
     }
     
-        constructor(Token _tokenContract) public {
+    function contributeToProduct(uint productId, uint tokenAmount) external payable onlyFinancier() {
+        require(tokenAmount != 0, "Please enter a valid amount!");
+        require(productList[productId].balance < productList[productId].totalSum, "Goal reached.");
+        uint check = productList[productId].balance + tokenAmount;
+        require(check <= productList[productId].totalSum, "The amount is too big!");
+        
+        tokenContract.transferFrom(msg.sender, address(this), tokenAmount);
+        productList[productId].balance += tokenAmount;
+        productList[productId].finantare[msg.sender] += tokenAmount;
+    }
+    
+    constructor(Token _tokenContract) public {
         owner = msg.sender;
         tokenContract = _tokenContract;
     }
     
-    function sendTokens(address ad, uint256 _numberOfTokens) public payable {
+    function sendTokens(address ad, uint256 _numberOfTokens) public {
          
          tokenContract.transfer(ad, _numberOfTokens);
     }
