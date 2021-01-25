@@ -13,7 +13,9 @@ contract Token is ERC20 {
 contract Marketplace {
     Token tokenContract;
     address owner;
-    uint8 prodID;
+    // uint8 prodID;
+    uint prodTotal; //id
+    uint activeProd;
     
     
     struct Manager {
@@ -38,6 +40,8 @@ contract Marketplace {
     }
 
     struct Product {
+        uint id;
+        bool active;
         string description;
         uint developingCost;
         uint evaluatorCompensation;
@@ -86,12 +90,15 @@ contract Marketplace {
         uint totalSumProd = developCost + evalCompensation;
         // managerToProduct[msg.sender].finantare.financierAdd = "";
         // managerToProduct[msg.sender].finantare.amountFinanced = 0;
-        
-        managerToProduct[msg.sender].push(Product(prodDescription, developCost, evalCompensation, 0, totalSumProd, domainProd, msg.sender));
+
+        managerToProduct[msg.sender].push(Product(prodTotal, true, prodDescription, developCost, evalCompensation, 0, totalSumProd, domainProd, msg.sender));
+        prodTotal += 1;
     }
     
-        // only to be called by managers
-    function removeProduct(string calldata id) public {
+    // only to be called by managers
+    function inactivateProduct(uint id) public onlyManager() {
+        productList[id].active = false;
+        //
     }
     
     function initFreelancer(string memory _name, string memory _expertiseDomain) public returns (bool success){
@@ -118,9 +125,46 @@ contract Marketplace {
     // }
     
     //functie show produse
-    function showProducts() public {
-        
+    function showProductId() public view returns (uint[] memory) {
+        uint[] memory ret = new uint[](prodTotal);
+        for (uint i = 0; i < prodTotal; i++) {
+            if (productList[i].active)
+                ret[i] = productList[i].id;
+        }
+        return ret;
     }
+    
+    // function showProductId() public view returns ( memory) {
+    //     uint[] memory ret = new uint[](prodTotal);
+    //     for (uint i = 0; i < prodTotal; i++) {
+    //         ret[i] = productList[i].id;
+    //     }
+    //     return ret;
+    // }
+    
+    //[prod1], [prod2]
+    
+    
+    
+    // function getAll() public view returns (address[] memory){
+    //     address[] memory ret = new address[](addressRegistryCount);
+    //     for (uint i = 0; i < addressRegistryCount; i++) {
+    //         ret[i] = addresses[i];
+    //     }
+    //     return ret;
+    // }
+    
+    
+//     function append(string a, string b, string c, string d, string e) internal pure returns (string) {
+
+//     return string(abi.encodePacked(a, b, c, d, e));
+
+// }
+
+    
+    
+    
+    
     
     function contributeToProduct(uint productId, uint tokenAmount) external payable onlyFinancier() {
         require(tokenAmount != 0, "Please enter a valid amount!");
@@ -136,6 +180,7 @@ contract Marketplace {
     constructor(Token _tokenContract) public {
         owner = msg.sender;
         tokenContract = _tokenContract;
+        prodTotal = 0;
     }
     
     function sendTokens(address ad, uint256 _numberOfTokens) public {
