@@ -323,8 +323,8 @@ contract Marketplace {
         require(productList[id].prodExists == true, "Invalid product ID.");
         require(productList[id].active, "The product is inactive."); 
         require(productList[id].balance == productList[id].totalSum, "The product is not financed.");
-        require(productList[id].developingCost <= amount, "The amount is too big.");
-        require(productList[id].devRaised + amount <= productList[id].devRaised, "Developing cost already reached.");
+        require(productList[id].developingCost >= amount, "The amount is too big.");
+        require(productList[id].devRaised + amount <= productList[id].developingCost, "Developing cost already reached.");
         require(keccak256(bytes(productList[id].expertiseDomain)) == keccak256(bytes(freelencerList[msg.sender].expertiseDomain)), "You need to be expert for this product's domain");
         
         freelencerList[msg.sender].contor += 1;
