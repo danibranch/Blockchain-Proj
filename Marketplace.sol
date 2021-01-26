@@ -83,12 +83,12 @@ contract Marketplace {
     }
     
     modifier onlyFreelancer(){
-        require(bytes(financierList[msg.sender].name).length != 0, "You are not a freelancer");
+        require(bytes(freelencerList[msg.sender].name).length != 0, "You are not a freelancer");
         _;
     }
     
     modifier onlyEvaluator(){
-        require(bytes(financierList[msg.sender].name).length != 0, "You are not a evaluator");
+        require(bytes(evaluatorList[msg.sender].name).length != 0, "You are not a evaluator");
         _;
     }
     
@@ -139,6 +139,7 @@ contract Marketplace {
         productList[prodTotal] = Product(prodTotal, true, true, false, prodDescription, developCost, 0, evalCompensation, 0, totalSumProd, false, domainProd, msg.sender, new address[](0), new address[](0));
     }
     
+    //to be testes again
     // only to be called by managers, inactivate a product
     function inactivateProduct(uint id) public onlyManager() {
         require(productList[id].prodExists == true, "Invalid product ID.");
@@ -205,6 +206,7 @@ contract Marketplace {
         require(tokenAmount != 0, "Please enter a valid amount!");
         require(productList[productId].prodExists == true, "Invalid product ID.");
         require(productList[productId].balance < productList[productId].totalSum, "Goal reached.");
+        require(productList[productId].active == true, "The product is not active!" );
         uint check = productList[productId].balance + tokenAmount;
         require(check <= productList[productId].totalSum, "The amount is too big!");
         
@@ -313,7 +315,6 @@ contract Marketplace {
         require(productList[id].active, "The product is inactive."); 
         require(productList[id].balance == productList[id].totalSum, "The product is not financed.");
         require(evaluatorList[msg.sender].applied == false, "You have already applied to a projet.");
-        
         evaluatorList[msg.sender].prodID = id;
         evaluatorList[msg.sender].applied = true;
     }
