@@ -150,7 +150,7 @@ contract Marketplace {
         if (getFinArrLength != 0){
             for(uint i = 0; i < getFinArrLength; i++){
                 returnBack = productList[id].finantare[productList[id].finAddr[i]];
-                tokenContract.transferFrom(address(this), productList[id].finAddr[i], returnBack);
+                tokenContract.transfer(productList[id].finAddr[i], returnBack);
                 productList[id].balance -= returnBack;
                 productList[id].finantare[productList[id].finAddr[i]] = 0;
             }
