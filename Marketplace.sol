@@ -64,6 +64,10 @@ contract Marketplace {
         //map the address of the freelancer with the amount he gives and remember a list with the freelancers addresses
         mapping(address => uint) freelancer;
         address[] freelancerAddr;
+        
+        //final freelancers
+        address[] finalFreelancersAddr;
+        
     }
 
     mapping(address => Manager) public managerList;
@@ -83,12 +87,12 @@ contract Marketplace {
     }
     
     modifier onlyFreelancer(){
-        require(bytes(financierList[msg.sender].name).length != 0, "You are not a freelancer");
+        require(bytes(freelencerList[msg.sender].name).length != 0, "You are not a freelancer");
         _;
     }
     
     modifier onlyEvaluator(){
-        require(bytes(financierList[msg.sender].name).length != 0, "You are not a evaluator");
+        require(bytes(evaluatorList[msg.sender].name).length != 0, "You are not a evaluator");
         _;
     }
     
@@ -136,10 +140,11 @@ contract Marketplace {
     function addProduct(string calldata prodDescription, uint developCost, uint evalCompensation, string calldata domainProd) returns (uint id) external onlyManager() {
         uint totalSumProd = developCost + evalCompensation;
         prodTotal += 1;
-        productList[prodTotal] = Product(prodTotal, true, true, false, prodDescription, developCost, 0, evalCompensation, 0, totalSumProd, false, domainProd, msg.sender, new address[](0), new address[](0));
+        productList[prodTotal] = Product(prodTotal, true, true, false, prodDescription, developCost, 0, evalCompensation, 0, totalSumProd, false, domainProd, msg.sender, new address[](0), new address[](0), new address[](0));
         return prodTotal;
     }
     
+    //to be testes again
     // only to be called by managers, inactivate a product
     function inactivateProduct(uint id) public onlyManager() {
         require(productList[id].prodExists == true, "Invalid product ID.");
@@ -209,6 +214,7 @@ contract Marketplace {
         require(Token.allowance(msg.sender, address(this)) >= tokenAmount, "You haven't allowed the contract to transfer enough tokens");
         require(productList[productId].prodExists == true, "Invalid product ID.");
         require(productList[productId].balance < productList[productId].totalSum, "Goal reached.");
+        require(productList[productId].active == true, "The product is not active!" );
         uint check = productList[productId].balance + tokenAmount;
         require(check <= productList[productId].totalSum, "The amount is too big!");
         
@@ -317,7 +323,6 @@ contract Marketplace {
         require(productList[id].active, "The product is inactive."); 
         require(productList[id].balance == productList[id].totalSum, "The product is not financed.");
         require(evaluatorList[msg.sender].applied == false, "You have already applied to a projet.");
-        
         evaluatorList[msg.sender].prodID = id;
         evaluatorList[msg.sender].applied = true;
     }
@@ -362,18 +367,77 @@ contract Marketplace {
     
     //managerul trebuie sa vada lista de freelanceri la un proiect -> input id proiect output id freelancer
     //un id freelancer e asociat cu adresa acestuia, id unic (ca la produse)
-    function managerShowFreelancersForProjectId(uint id) public returns(address[] memory){
+    function managerShowFreelancersForProjectId(uint id) public view returns(address[] memory){
         return productList[id].freelancerAddr;
     }
     
-    function managerShowFreelancerAddressInfo(address adr)public{
-        
+    //managerul poate verifica cu cat doreste un freelancer sa aplice pe proiectul x + reputatia-> input id proiect, id freelancer, output suma oferita de freelancer, reputatia
+    function managerShowFreelancerAddressInfo(uint prodId, address adr)public view returns(uint a, uint b){
+        require(productList[prodId].prodExists == true, "Invalid product ID.");
+        require(productList[prodId].active, "The product is inactive."); 
+        require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
+        require(productList[prodId].freelancer[adr] != 0, "The freelancer doesn't exist with this product id.");
+        uint amount = productList[prodId].freelancer[adr];
+        uint freelancerRep = freelencerList[adr].reputation;
+        return (amount, freelancerRep);
+    }
+    
+    function managerAddFinalFreelancer(uint prodId, address adr) public {
+        require(productList[prodId].prodExists == true, "Invalid product ID.");
+        require(productList[prodId].active == true, "The product is inactive."); 
+        require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
+        require(productList[prodId].freelancer[adr] != 0, "The freelancer doesn't exist with this product id.");
+        require(productList[prodId].devRaised + productList[prodId].freelancer[adr] <= productList[prodId].developingCost, "The amount is too much.");
+        require(productList[prodId].duringExecution == false, "The product is in execution mode."); 
+
+        bool check = false;
+        for(uint i=0; i<productList[prodId].finalFreelancersAddr.length; i++ ){
+            if(productList[prodId].finalFreelancersAddr[i] == adr){
+                check = true;
+                break;
+            }
+        }
+        if(check == false){
+            productList[prodId].finalFreelancersAddr.push(adr);
+        }
+        productList[prodId].devRaised += productList[prodId].freelancer[adr];
+        if(productList[prodId].devRaised == productList[prodId].developingCost){
+            productList[prodId].duringExecution = true;
+        }
     }
     
     
-    //managerul poate verifica cu cat doreste un freelancer sa aplice pe proiectul x + reputatia-> input id proiect, id freelancer, output suma oferita de freelancer, reputatia
+    
+    // function managerDeleteFinalFreelancer(uint prodId, address adr)public{
+    //     require(productList[prodId].prodExists == true, "Invalid product ID.");
+    //     require(productList[prodId].active, "The product is inactive."); 
+    //     require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
+    //     require(productList[prodId].freelancer[adr] != 0, "The freelancer doesn't exist with this product id.");
+        
+    //     bool check = false;
+    //     for(uint i=0; i<productList[prodId].finalFreelancersAddr.length; i++ ){
+    //         if(productList[prodId].finalFreelancersAddr[i] == adr){
+    //             check = true;
+    //             for (uint j = i; j<productList[prodId].finalFreelancersAddr.length-1; j++){
+    //                 productList[prodId].finalFreelancersAddr[j] = productList[prodId].finalFreelancersAddr[j+1];
+    //              }
+    //              delete productList[prodId].finalFreelancersAddr[productList[prodId].finalFreelancersAddr.length-1];
+    //              productList[prodId].finalFreelancersAddr.length--;
+    //             break;
+    //         }
+    //     }
+        
+        
+    //     //delete array[array.length-1];
+    //     //array.length--;
+    //   // return array;
+    // }
+    
+    
     
     //managerul poate sa aleaga echipa -> trebuie input de la manager cu o lista de id-uri ale freelancer ilor cum? se presupune ca trebuie ales din prima echipa potrivita si dev nu se restituie
+    
+   
     //se pune true pe during execution dupa ce check la echipa e ok (adica suma atinsa e == cu cea de la proiect)
     
     //freelancer modifica statusul de closed la prod si trimite notificare(cum?) -> input id proiect, modificare bool la proiect
