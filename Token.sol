@@ -33,8 +33,8 @@ contract Marketplace {
         string name;
         uint reputation;
         string expertiseDomain;
-        bool applied;
-        uint prodID;
+        bool applied; //check if he applied for a product
+        uint prodID; //remember product id
     }
     
     struct Financier {
@@ -54,9 +54,12 @@ contract Marketplace {
         uint totalSum; //total for DEV and REV
         string expertiseDomain;
         address associatedManager;
+        
+        //map the address of the financier with the amount he gives and remember a list with the financiers addresses
         mapping(address => uint) finantare;
         address[] finAddr;
         
+        //map the address of the freelancer with the amount he gives and remember a list with the freelancers addresses
         mapping(address => uint) freelancer;
         address[] freelancerAddr;
     }
@@ -126,16 +129,16 @@ contract Marketplace {
 
 
 
-    // only to be called by managers
+    // only to be called by managers, add products
     //ok
-    function managerAddProduct(string calldata prodDescription, uint developCost, uint evalCompensation, string calldata domainProd) external onlyManager() {
+    function addProduct(string calldata prodDescription, uint developCost, uint evalCompensation, string calldata domainProd) external onlyManager() {
         uint totalSumProd = developCost + evalCompensation;
         prodTotal += 1;
         productList[prodTotal] = Product(prodTotal, true, true, false, prodDescription, developCost, 0, evalCompensation, 0, totalSumProd, domainProd, msg.sender, new address[](0), new address[](0));
     }
     
-    // only to be called by managers
-    function managerInactivateProduct(uint id) public onlyManager() {
+    // only to be called by managers, inactivate a product
+    function inactivateProduct(uint id) public onlyManager() {
         require(productList[id].prodExists == true, "Invalid product ID.");
         require(productList[id].balance < productList[id].totalSum, "The amount was reached, cannot inactivate product!");
         productList[id].active = false;
@@ -152,7 +155,7 @@ contract Marketplace {
         }
     }
     
-    // only to be called by managers
+    // only to be called by managers, view inactive products
     //ok
     function managerShowInactiveProductsId() public onlyManager() view returns (uint[] memory) {
         uint[] memory ret = new uint[](prodTotal);
@@ -165,7 +168,7 @@ contract Marketplace {
         return ret;
     }
     
-    // only to be called by managers
+    // only to be called by managers, view active products
     //ok
     function managerShowActiveProductsId() public onlyManager() view returns (uint[] memory) {
         uint[] memory ret = new uint[](prodTotal); 
@@ -178,7 +181,7 @@ contract Marketplace {
         return ret;
     }
     
-    // only to be called by managers
+    // only to be called by managers, view all active and inactive products
     //ok
     function managerShowAllProductsId() public onlyManager() view returns (uint[] memory) {
         uint[] memory ret = new uint[](prodTotal);
@@ -195,7 +198,7 @@ contract Marketplace {
     
     
     
-    // only to be called by financier
+    // only to be called by financier, contribute to project
     function financierContributeToProduct(uint productId, uint tokenAmount) external payable onlyFinancier() {
         require(tokenAmount != 0, "Please enter a valid amount!");
         require(productList[productId].prodExists == true, "Invalid product ID.");
@@ -215,7 +218,7 @@ contract Marketplace {
             }
         }
         
-        //scazut tokenamount de la finan?
+        //scazut tokenamount de la finantator?
         if(checkExistance == false){
             productList[productId].finAddr.push(msg.sender);
         }
@@ -224,7 +227,7 @@ contract Marketplace {
         productList[productId].finantare[msg.sender] += tokenAmount;
     }
     
-    //only to be called by financier
+    //only to be called by financier, get amount back from project
     function financierRetrieveAmount(uint id) public onlyFinancier() {
         require(productList[id].prodExists == true, "Invalid product ID.");
         require(productList[id].balance < productList[id].totalSum, "The amount was reached, cannot inactivate product!");
@@ -233,7 +236,7 @@ contract Marketplace {
         productList[id].finantare[msg.sender] = 0;
     }
     
-    //only managers and financiers can see
+    //only managers and financiers can see the unfinanced projects
     //ok
     function mfShowUnfinancedActiveProductsId() public view returns (string memory result, uint[] memory) {
         if (bytes(managerList[msg.sender].name).length != 0 || bytes(financierList[msg.sender].name).length != 0){
@@ -249,12 +252,7 @@ contract Marketplace {
         return ("You must be a manager or a financier.", new uint[](0));
     }
     
-    
-    
-    
-    
-    
-    //only managers, freelancers and evaluators can see
+    //only managers, freelancers and evaluators can see the financed projects
     //ok
     function showFinancedProductsId() public view returns (string memory result, uint[] memory) {
         if (bytes(managerList[msg.sender].name).length != 0 || bytes(freelencerList[msg.sender].name).length != 0 || bytes(evaluatorList[msg.sender].name).length != 0){
@@ -270,6 +268,7 @@ contract Marketplace {
         return ("You must be a manager, freelancer or a evaluator.", new uint[](0));
     }
     
+    //show product info depending on the user's type
     //ok
     function showProductInfo(uint id) public view returns (string memory showDescr, uint showDev, uint showRev, uint showBalance, uint showTotal, string memory showDomain) {
         //uint showId, string memory showDescr, uint showDev, uint showRev, uint showBalance, uint showTotal, string memory showDomain
@@ -300,7 +299,7 @@ contract Marketplace {
     
     
     
-    //allow for only one project
+    //only to be called by evaluators, allow apply to only one project
     function evaluatorApplyProductId(uint id) public onlyEvaluator(){
         require(productList[id].prodExists == true, "Invalid product ID.");
         require(productList[id].active, "The product is inactive."); 
@@ -315,11 +314,12 @@ contract Marketplace {
         
     }
     
+    //only to be called by freelancers, allow apply to more projects
+    function freelancerApplyProductId(uint id, uint amount) public onlyFreelancer(){
     //trebuie retinut cat da fiecare freelancer pe un proiect plus care e proiectul(id) (mapping)
     //contor pentru a face array-ul cu id
     //trebuie stiut la fiecare proiect o lista cu freelancerii care au aplicat(addrs) si valoarea
     //presume that the domain is only one
-    function freelancerApplyProductId(uint id, uint amount) public onlyFreelancer(){
         require(productList[id].prodExists == true, "Invalid product ID.");
         require(productList[id].active, "The product is inactive."); 
         require(productList[id].balance == productList[id].totalSum, "The product is not financed.");
@@ -336,6 +336,7 @@ contract Marketplace {
         // productList[id].
     }
     
+    //only to be called by manager, view freelancer's id's
     function managerViewFreelancersId() public onlyManager() view returns (uint[] memory) {
         uint[] memory ret = new uint[](prodTotal);
         uint contor = 0;
