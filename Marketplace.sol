@@ -64,6 +64,10 @@ contract Marketplace {
         //map the address of the freelancer with the amount he gives and remember a list with the freelancers addresses
         mapping(address => uint) freelancer;
         address[] freelancerAddr;
+        
+        //final freelancers
+        address[] finalFreelancersAddr;
+        
     }
 
     mapping(address => Manager) public managerList;
@@ -136,7 +140,7 @@ contract Marketplace {
     function addProduct(string calldata prodDescription, uint developCost, uint evalCompensation, string calldata domainProd) external onlyManager() {
         uint totalSumProd = developCost + evalCompensation;
         prodTotal += 1;
-        productList[prodTotal] = Product(prodTotal, true, true, false, prodDescription, developCost, 0, evalCompensation, 0, totalSumProd, false, domainProd, msg.sender, new address[](0), new address[](0));
+        productList[prodTotal] = Product(prodTotal, true, true, false, prodDescription, developCost, 0, evalCompensation, 0, totalSumProd, false, domainProd, msg.sender, new address[](0), new address[](0), new address[](0));
     }
     
     //to be testes again
@@ -359,18 +363,77 @@ contract Marketplace {
     
     //managerul trebuie sa vada lista de freelanceri la un proiect -> input id proiect output id freelancer
     //un id freelancer e asociat cu adresa acestuia, id unic (ca la produse)
-    function managerShowFreelancersForProjectId(uint id) public returns(address[] memory){
+    function managerShowFreelancersForProjectId(uint id) public view returns(address[] memory){
         return productList[id].freelancerAddr;
     }
     
-    function managerShowFreelancerAddressInfo(address adr)public{
-        
+    //managerul poate verifica cu cat doreste un freelancer sa aplice pe proiectul x + reputatia-> input id proiect, id freelancer, output suma oferita de freelancer, reputatia
+    function managerShowFreelancerAddressInfo(uint prodId, address adr)public view returns(uint a, uint b){
+        require(productList[prodId].prodExists == true, "Invalid product ID.");
+        require(productList[prodId].active, "The product is inactive."); 
+        require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
+        require(productList[prodId].freelancer[adr] != 0, "The freelancer doesn't exist with this product id.");
+        uint amount = productList[prodId].freelancer[adr];
+        uint freelancerRep = freelencerList[adr].reputation;
+        return (amount, freelancerRep);
+    }
+    
+    function managerAddFinalFreelancer(uint prodId, address adr) public {
+        require(productList[prodId].prodExists == true, "Invalid product ID.");
+        require(productList[prodId].active == true, "The product is inactive."); 
+        require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
+        require(productList[prodId].freelancer[adr] != 0, "The freelancer doesn't exist with this product id.");
+        require(productList[prodId].devRaised + productList[prodId].freelancer[adr] <= productList[prodId].developingCost, "The amount is too much.");
+        require(productList[prodId].duringExecution == false, "The product is in execution mode."); 
+
+        bool check = false;
+        for(uint i=0; i<productList[prodId].finalFreelancersAddr.length; i++ ){
+            if(productList[prodId].finalFreelancersAddr[i] == adr){
+                check = true;
+                break;
+            }
+        }
+        if(check == false){
+            productList[prodId].finalFreelancersAddr.push(adr);
+        }
+        productList[prodId].devRaised += productList[prodId].freelancer[adr];
+        if(productList[prodId].devRaised == productList[prodId].developingCost){
+            productList[prodId].duringExecution = true;
+        }
     }
     
     
-    //managerul poate verifica cu cat doreste un freelancer sa aplice pe proiectul x + reputatia-> input id proiect, id freelancer, output suma oferita de freelancer, reputatia
+    
+    // function managerDeleteFinalFreelancer(uint prodId, address adr)public{
+    //     require(productList[prodId].prodExists == true, "Invalid product ID.");
+    //     require(productList[prodId].active, "The product is inactive."); 
+    //     require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
+    //     require(productList[prodId].freelancer[adr] != 0, "The freelancer doesn't exist with this product id.");
+        
+    //     bool check = false;
+    //     for(uint i=0; i<productList[prodId].finalFreelancersAddr.length; i++ ){
+    //         if(productList[prodId].finalFreelancersAddr[i] == adr){
+    //             check = true;
+    //             for (uint j = i; j<productList[prodId].finalFreelancersAddr.length-1; j++){
+    //                 productList[prodId].finalFreelancersAddr[j] = productList[prodId].finalFreelancersAddr[j+1];
+    //              }
+    //              delete productList[prodId].finalFreelancersAddr[productList[prodId].finalFreelancersAddr.length-1];
+    //              productList[prodId].finalFreelancersAddr.length--;
+    //             break;
+    //         }
+    //     }
+        
+        
+    //     //delete array[array.length-1];
+    //     //array.length--;
+    //   // return array;
+    // }
+    
+    
     
     //managerul poate sa aleaga echipa -> trebuie input de la manager cu o lista de id-uri ale freelancer ilor cum? se presupune ca trebuie ales din prima echipa potrivita si dev nu se restituie
+    
+   
     //se pune true pe during execution dupa ce check la echipa e ok (adica suma atinsa e == cu cea de la proiect)
     
     //freelancer modifica statusul de closed la prod si trimite notificare(cum?) -> input id proiect, modificare bool la proiect
