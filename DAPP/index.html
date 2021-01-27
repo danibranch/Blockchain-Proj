@@ -86,7 +86,7 @@
                         </div>
                         <div class="mt-3">
                             <label>Get a list of ids for inactive projects - only callable by managers</label>
-                            <button id="getInactiveProductIds" onclick="getInactiveProductsIds()">
+                            <button id="getInactiveProductIds" onclick="getInactiveProductIds()">
                                 Get list
                             </button>
                             <div id="inactiveProductIds">
@@ -95,7 +95,7 @@
                         </div>
                         <div class="mt-3">
                             <label>Get a list of ids for active projects - only callable by managers</label>
-                            <button id="getActiveProductIds" onclick="getActiveProductsIds()">
+                            <button id="getActiveProductIds" onclick="getActiveProductIds()">
                                 Get list
                             </button>
                             <div id="activeProductIds">
@@ -104,12 +104,20 @@
                         </div>
                         <div class="mt-3">
                             <label>Get a list of ids for all projects - only callable by managers</label>
-                            <button id="getAllProductIds" onclick="getAllProductsIds()">
+                            <button id="getAllProductIds" onclick="getAllProductIds()">
                                 Get list
                             </button>
                             <div id="allProductIds">
 
                             </div>
+                        </div>
+                        <div class="mt-3">
+                            <label>Contribute to a product that hasn't reached it's goal yet - only callable by financers</label>
+                            <input type="number" name="productId" id="contributeProdId" />
+                            <input type="number" name="tokenAmount" id="contributeProdTokenAmount" />
+                            <button id="contributeProduct" onclick="contributeToProduct()">
+                                Contribute
+                            </button>
                         </div>
                     </div>
                 </div>

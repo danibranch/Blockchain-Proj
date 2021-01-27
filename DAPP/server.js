@@ -36,7 +36,7 @@ app.get('/',function(req, res){
 
 /*********************** Node server *****************************/
 app.listen(http_port, function(){
-    console.log("-http Server listening on :"+IP+":"+ http_port);
+    console.log("-http Server listening on: "+IP+":"+ http_port);
 });
 
 /**/ 

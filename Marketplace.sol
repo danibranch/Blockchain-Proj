@@ -148,7 +148,6 @@ contract Marketplace {
         prodTotal += 1;
         productList[prodTotal] = Product(prodTotal, prodDescription, developCost, 0, evalCompensation, 0, developCost + evalCompensation, domainProd, true, true, new address[](0), new address[](0), new address[](0), address(0) );
         productCheckList[prodTotal] = prodBools(false, false, false, false, false, false);
-        
     }
     
     //to be testes again

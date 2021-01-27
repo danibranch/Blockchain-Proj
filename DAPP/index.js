@@ -120,6 +120,7 @@ const marketplaceABI = [
     {
         "type": "function",
         "name": "managerShowInactiveProductsId",
+        "inputs": [],
         "outputs": [
             {
                 "type": "uint[]",
@@ -130,25 +131,51 @@ const marketplaceABI = [
     {
         "type": "function",
         "name": "managerShowActiveProductsId",
+        "inputs": [],
         "outputs": [
             {
                 "type": "uint[]",
-                "name": "memory"
+                "name": ""
             }
         ]
     },
     {
         "type": "function",
         "name": "managerShowAllProductsId",
+        "inputs": [],
         "outputs": [
             {
                 "type": "uint[]",
-                "name": "memory"
+                "name": ""
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "financierContributeToProduct",
+        "inputs": [
+            {
+                "type": "uint",
+                "name": "productId"
+            },
+            {
+                "type": "uint",
+                "name": "tokenAmount"
+            }
+        ]
+    },
+    {
+        "type": "function",
+        "name": "financierRetrieveAmount",
+        "inputs": [
+            {
+                "type": "uint",
+                "name": "id"
             }
         ]
     }
 ]
-const contractAddress = "0x9bCdE8d23dEAa080554cd0f60E60DaC2E48cb147"
+const contractAddress = "0xf7d17B4bf802FA6065C61723c35512575BEeBE70"
 
 const ethEnabled = () => {
     if (window.ethereum) {
@@ -169,7 +196,6 @@ window.onload = async function init(){
 }
 
 ethereum.on('accountsChanged', function (accounts) {
-    console.log(accounts)
     window.user = accounts[0]
 });
 
@@ -235,11 +261,11 @@ function inactivateProduct() {
     })
 }
 
-function getInactiveProductsIds() {
+function getInactiveProductIds() {
     marketplace.methods.managerShowInactiveProductsId().call({
         from: window.user
     }).then(inactiveProductIds => {
-
+        console.log(inactiveProductIds)
     }).catch(error => {
         console.log(error)
     })
@@ -249,17 +275,28 @@ function getActiveProductIds() {
     marketplace.methods.managerShowActiveProductsId().call({
         from: window.user
     }).then(activeProductIds => {
-
+        console.log(activeProductIds)
     }).catch(error => {
         console.log(error)
     })
 }
 
 function getAllProductIds() {
-    marketplace.managerShowAllProductsId().call({
+    marketplace.methods.managerShowAllProductsId().call({
         from: window.user
     }).then(products => {
+        console.log(products)
+    }).catch(error => {
+        console.log(error)
+    })
+}
 
+function contributeToProduct() {
+    let prodId = Number($("#contributeProdId")[0].value)
+    let tokenAmount = Number($("#contributeProdTokenAmount")[0].value)
+
+    marketplace.financierContributeToProduct(prodId, tokenAmount).call({
+        from: window.user
     }).catch(error => {
         console.log(error)
     })
