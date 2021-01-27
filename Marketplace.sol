@@ -339,23 +339,25 @@ contract Marketplace {
     }
     
     //only to be called by manager, view freelancer's id's
-    // function managerViewFreelancersId() public onlyManager() view returns (uint[] memory) {
-    //     uint[] memory ret = new uint[](prodTotal);
-    //     uint contor = 0;
-    //     for (uint i = 1; i <= prodTotal; i++) {
-    //         if (productList[i].active == false)
-    //             ret[contor] = productList[i].id;
-    //             contor += 1;
-    //     }
-    //     return ret;
-    // }
+    function managerViewFreelancersId() public onlyManager() view returns (uint[] memory) {
+        uint[] memory ret = new uint[](prodTotal);
+        uint contor = 0;
+        for (uint i = 1; i <= prodTotal; i++) {
+            if (productList[i].active == false)
+                ret[contor] = productList[i].id;
+                contor += 1;
+        }
+        return ret;
+    }
     
-    function managerShowFreelancersForProjectId(uint id) public view returns(address[] memory){
+    
+    //manager can see the freelancers for a certain project (id)
+    function managerShowFreelancersForProjectId(uint id) public view onlyManager() returns(address[] memory){
         return productList[id].freelancerAddr;
     }
     
     //managerul poate verifica cu cat doreste un freelancer sa aplice pe proiectul x + reputatia-> input id proiect, id freelancer, output suma oferita de freelancer, reputatia
-    function managerShowFreelancerAddressInfo(uint prodId, address adr)public view returns(uint a, uint b){
+    function managerShowFreelancerAddressInfo(uint prodId, address adr)public view onlyManager() returns(uint a, uint b){
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active, "The product is inactive."); 
         require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
@@ -363,7 +365,8 @@ contract Marketplace {
         return (productList[prodId].freelancer[adr], freelencerList[adr].reputation);
     }
     
-    function managerAddFinalFreelancer(uint prodId, address adr) public {
+    // //manager creates the final list for freelancers for a certain product so the project can start
+    function managerAddFinalFreelancer(uint prodId, address adr) public onlyManager() {
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
         require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
@@ -387,6 +390,7 @@ contract Marketplace {
         }
     }
     
+    //freelancer marks a product as done/finished
     function freelancerMarkProductAsDone(uint prodId) public onlyFreelancer(){
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
@@ -400,7 +404,8 @@ contract Marketplace {
         }
     }
     
-    function managerCheckIfFreelancersWorkIsDone(uint prodId) public view returns(bool){
+    //manager can check if the work on a project is done
+    function managerCheckIfFreelancersWorkIsDone(uint prodId) public view onlyManager() returns(bool){
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
         require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
@@ -408,8 +413,8 @@ contract Marketplace {
     }
     
 
-    
-    function managerAcceptProductResult(uint prodId)public {
+    //manager can accept the result from freelancers for a certain product
+    function managerAcceptProductResult(uint prodId) public onlyManager() {
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
         require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
@@ -440,7 +445,8 @@ contract Marketplace {
         }
     }
     
-    function managerDeclineProductResult(uint prodId)public {
+    //manager can decline the result and set it to arbitraj
+    function managerDeclineProductResult(uint prodId) public onlyManager() {
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
         require(productList[prodId].balance == productList[prodId].totalSum, "The product is not financed.");
@@ -452,7 +458,8 @@ contract Marketplace {
         }
     }
 
-    function evaluatorCheckIfArbitraj(uint prodId) public view returns(bool){
+    //evaluator checks the arbitraj mode
+    function evaluatorCheckIfArbitraj(uint prodId) public view onlyEvaluator() returns(bool){
         require(evaluatorList[msg.sender].prodID == prodId, "You've applied for another product.");
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
@@ -463,7 +470,8 @@ contract Marketplace {
         return  productCheckList[prodId].arbitraj;
     }
      
-    function evaluatorAcceptProductResult(uint prodId)public {
+    //evaluator can accept a product after arbitraj was set
+    function evaluatorAcceptProductResult(uint prodId) public onlyEvaluator() {
         require(evaluatorList[msg.sender].prodID == prodId, "You've applied for another product.");
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
@@ -497,7 +505,8 @@ contract Marketplace {
         evaluatorList[msg.sender].applied = false;
     }
     
-    function evaluatorDeclineProductResult(uint prodId)public {
+    //evaluator can decline a product after arbitraj was set
+    function evaluatorDeclineProductResult(uint prodId) public onlyManager() {
         require(evaluatorList[msg.sender].prodID == prodId, "You've applied for another product.");
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
