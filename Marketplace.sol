@@ -455,7 +455,7 @@ contract Marketplace {
     }
     
     //manager can decline the result and set it to arbitraj
-    
+    //ok
     function managerDeclineProductResult(uint prodId) public onlyManager() {
         require(productList[prodId].prodExists == true, "Invalid product ID.");
         require(productList[prodId].active == true, "The product is inactive."); 
@@ -469,6 +469,7 @@ contract Marketplace {
     }
 
     //evaluator checks the arbitraj mode
+    //ok
     function evaluatorCheckIfArbitraj(uint prodId) public view onlyEvaluator() returns(bool){
         require(evaluatorList[msg.sender].prodID == prodId, "You've applied for another product.");
         require(productList[prodId].prodExists == true, "Invalid product ID.");
