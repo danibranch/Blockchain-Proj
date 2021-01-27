@@ -111,8 +111,6 @@ contract Marketplace {
     }
 
 
-
-
     //functions for init manager, freelancer, evaluator, sponsor
     //ok
     function initManager(string memory _name) public returns (bool success){
@@ -138,9 +136,18 @@ contract Marketplace {
         financierList[msg.sender] = Financier(_name);
         return true;
     }
-
-
-
+    
+    function showRep() public view returns(uint Reputiation){
+        if (bytes(managerList[msg.sender].name).length != 0) {
+            return managerList[msg.sender].reputation;
+        }
+        if (bytes(freelencerList[msg.sender].name).length != 0) {
+            return freelencerList[msg.sender].reputation;
+        }
+        if (bytes(evaluatorList[msg.sender].name).length != 0) {
+            return evaluatorList[msg.sender].reputation;
+        }
+    }
 
     // only to be called by managers, add products
     //ok
